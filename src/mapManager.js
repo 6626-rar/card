@@ -62,8 +62,8 @@ class MapManager {
                 type: nodeType,
                 event: event,
                 layer: layer,
-                x: layer * 200,
-                y: 50 + i * 50
+                x: layer * 300,
+                y: 100 + i * 80
             });
         }
 

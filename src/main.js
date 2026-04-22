@@ -24,8 +24,22 @@ class Game {
         this.gameState.state.deck = [...this.gameState.state.cards];
         this.gameState.shuffleDeck();
         
+        // 强制显示地图容器
+        const mapContainer = document.getElementById('map-container');
+        if (mapContainer) {
+            mapContainer.style.display = 'block';
+            mapContainer.classList.remove('hidden');
+        }
+        
         // 初始化地图UI
         this.mapUI.init('map-container', (nodeId) => this.handlePathSelect(nodeId));
+        
+        // 渲染地图树形图
+        this.mapUI.render(
+            this.mapManager.getMapData(),
+            this.mapManager.getCurrentPath(),
+            this.mapManager.getUnlockedNodes()
+        );
         
         // 更新UI，确保休息按钮等元素状态正确
         this.updateUI();
@@ -43,18 +57,6 @@ class Game {
             onRestart: () => this.handleRestart(),
             onContinue: () => this.handleContinue()
         });
-        
-        // 绑定地图按钮事件
-        const mapBtn = document.getElementById('map-btn');
-        if (mapBtn) {
-            mapBtn.addEventListener('click', () => this.showMapModal());
-        }
-        
-        // 绑定关闭地图按钮事件
-        const closeMapBtn = document.getElementById('close-map-btn');
-        if (closeMapBtn) {
-            closeMapBtn.addEventListener('click', () => this.hideMapModal());
-        }
     }
 
     // 处理休息
@@ -255,6 +257,13 @@ class Game {
     showPathSelection() {
         const nextNodes = this.mapManager.getNextNodes();
         if (nextNodes.length > 0) {
+            // 强制显示地图容器
+            const mapContainer = document.getElementById('map-container');
+            if (mapContainer) {
+                mapContainer.style.display = 'block';
+                mapContainer.classList.remove('hidden');
+            }
+            
             // 确保地图UI初始化
             if (!this.mapUI.mapContainer) {
                 this.mapUI.init('map-container', (nodeId) => this.handlePathSelect(nodeId));
@@ -299,35 +308,6 @@ class Game {
         const currentNode = this.mapManager.getCurrentNode();
         this.gameState.startLevel(currentNode.enemy);
         this.updateUI();
-    }
-    
-    // 显示地图模态框
-    showMapModal() {
-        // 确保地图UI初始化
-        if (!this.mapUI.mapContainer) {
-            this.mapUI.init('map-container', (nodeId) => this.handlePathSelect(nodeId));
-        }
-        
-        // 渲染地图树形图
-        this.mapUI.render(
-            this.mapManager.getMapData(),
-            this.mapManager.getCurrentPath(),
-            this.mapManager.getUnlockedNodes()
-        );
-        
-        // 显示地图模态框
-        const mapModal = document.getElementById('map-modal');
-        if (mapModal) {
-            mapModal.classList.remove('hidden');
-        }
-    }
-    
-    // 隐藏地图模态框
-    hideMapModal() {
-        const mapModal = document.getElementById('map-modal');
-        if (mapModal) {
-            mapModal.classList.add('hidden');
-        }
     }
 
     // 更新UI

@@ -15,12 +15,26 @@ class MapUI {
 
         // 创建画布
         this.canvas = document.createElement('canvas');
-        this.canvas.width = 600;
-        this.canvas.height = 400;
+        this.canvas.width = 800;
+        this.canvas.height = 600;
         this.canvas.className = 'map-canvas';
         this.mapContainer.appendChild(this.canvas);
 
         this.ctx = this.canvas.getContext('2d');
+    }
+
+    // 渲染地图
+    render(mapData, currentPath, unlockedNodes) {
+        if (!this.ctx) return;
+
+        // 清空画布
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 绘制边
+        this.drawEdges(mapData.edges, mapData.nodes, unlockedNodes);
+
+        // 绘制节点
+        this.drawNodes(mapData.nodes, currentPath, unlockedNodes);
     }
 
     // 绘制边
@@ -33,68 +47,14 @@ class MapUI {
                 // 检查是否已解锁
                 const isUnlocked = unlockedNodes.has(edge.from) && unlockedNodes.has(edge.to);
 
-                // 绘制边
                 this.ctx.beginPath();
                 this.ctx.moveTo(fromNode.x, fromNode.y);
                 this.ctx.lineTo(toNode.x, toNode.y);
-                
-                if (isUnlocked) {
-                    // 已解锁的边：渐变色
-                    const gradient = this.ctx.createLinearGradient(fromNode.x, fromNode.y, toNode.x, toNode.y);
-                    gradient.addColorStop(0, '#4CAF50');
-                    gradient.addColorStop(1, '#81C784');
-                    this.ctx.strokeStyle = gradient;
-                    this.ctx.lineWidth = 3;
-                    
-                    // 添加发光效果
-                    this.ctx.shadowColor = '#4CAF50';
-                    this.ctx.shadowBlur = 5;
-                } else {
-                    // 未解锁的边：灰色
-                    this.ctx.strokeStyle = '#E0E0E0';
-                    this.ctx.lineWidth = 2;
-                    this.ctx.setLineDash([5, 5]); // 虚线
-                    this.ctx.shadowBlur = 0;
-                }
-                
+                this.ctx.strokeStyle = isUnlocked ? '#4CAF50' : '#9E9E9E';
+                this.ctx.lineWidth = isUnlocked ? 2 : 1;
                 this.ctx.stroke();
-                this.ctx.setLineDash([]); // 重置为实线
             }
         });
-    }
-    
-    // 渲染地图
-    render(mapData, currentPath, unlockedNodes) {
-        if (!this.ctx) return;
-
-        // 清空画布
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // 绘制背景
-        this.ctx.fillStyle = '#F5F5F5';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // 绘制网格背景
-        this.ctx.strokeStyle = '#E0E0E0';
-        this.ctx.lineWidth = 1;
-        for (let x = 0; x <= this.canvas.width; x += 20) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, 0);
-            this.ctx.lineTo(x, this.canvas.height);
-            this.ctx.stroke();
-        }
-        for (let y = 0; y <= this.canvas.height; y += 20) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, y);
-            this.ctx.lineTo(this.canvas.width, y);
-            this.ctx.stroke();
-        }
-
-        // 绘制边
-        this.drawEdges(mapData.edges, mapData.nodes, unlockedNodes);
-
-        // 绘制节点
-        this.drawNodes(mapData.nodes, currentPath, unlockedNodes);
     }
 
     // 绘制节点
@@ -105,40 +65,23 @@ class MapUI {
 
             // 绘制节点圆圈
             this.ctx.beginPath();
-            this.ctx.arc(node.x, node.y, isCurrent ? 18 : 12, 0, Math.PI * 2);
+            this.ctx.arc(node.x, node.y, isCurrent ? 15 : 10, 0, Math.PI * 2);
             
             if (isCurrent) {
-                // 当前节点：橙色渐变
-                const gradient = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 18);
-                gradient.addColorStop(0, '#FFB74D');
-                gradient.addColorStop(1, '#FF9800');
-                this.ctx.fillStyle = gradient;
+                this.ctx.fillStyle = '#FF9800';
             } else if (isUnlocked) {
                 switch (node.type) {
                     case 'boss':
-                        // BOSS节点：红色渐变
-                        const bossGradient = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 12);
-                        bossGradient.addColorStop(0, '#EF5350');
-                        bossGradient.addColorStop(1, '#F44336');
-                        this.ctx.fillStyle = bossGradient;
+                        this.ctx.fillStyle = '#F44336';
                         break;
                     case 'rest':
-                        // 休息节点：蓝色渐变
-                        const restGradient = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 12);
-                        restGradient.addColorStop(0, '#64B5F6');
-                        restGradient.addColorStop(1, '#2196F3');
-                        this.ctx.fillStyle = restGradient;
+                        this.ctx.fillStyle = '#2196F3';
                         break;
                     default:
-                        // 普通节点：绿色渐变
-                        const normalGradient = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 12);
-                        normalGradient.addColorStop(0, '#81C784');
-                        normalGradient.addColorStop(1, '#4CAF50');
-                        this.ctx.fillStyle = normalGradient;
+                        this.ctx.fillStyle = '#4CAF50';
                 }
             } else {
-                // 未解锁节点：灰色
-                this.ctx.fillStyle = '#BDBDBD';
+                this.ctx.fillStyle = '#9E9E9E';
             }
             
             this.ctx.fill();
@@ -148,27 +91,16 @@ class MapUI {
 
             // 绘制节点文本
             this.ctx.fillStyle = '#fff';
-            this.ctx.font = '10px Arial';
+            this.ctx.font = '12px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(node.enemy.name, node.x, node.y);
 
             // 绘制事件图标
             if (node.event && isUnlocked) {
-                // 事件图标：黄色星星
                 this.ctx.fillStyle = '#FFEB3B';
                 this.ctx.beginPath();
-                this.ctx.moveTo(node.x + 20, node.y - 20);
-                this.ctx.lineTo(node.x + 22, node.y - 16);
-                this.ctx.lineTo(node.x + 26, node.y - 16);
-                this.ctx.lineTo(node.x + 23, node.y - 13);
-                this.ctx.lineTo(node.x + 24, node.y - 9);
-                this.ctx.lineTo(node.x + 20, node.y - 11);
-                this.ctx.lineTo(node.x + 16, node.y - 9);
-                this.ctx.lineTo(node.x + 17, node.y - 13);
-                this.ctx.lineTo(node.x + 14, node.y - 16);
-                this.ctx.lineTo(node.x + 18, node.y - 16);
-                this.ctx.closePath();
+                this.ctx.arc(node.x + 20, node.y - 20, 5, 0, Math.PI * 2);
                 this.ctx.fill();
             }
         });

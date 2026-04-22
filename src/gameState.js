@@ -98,7 +98,13 @@ class GameState {
     // 应用事件效果
     applyEventEffects(effects) {
         if (effects.kn) this.state.kn = Math.max(0, this.state.kn + effects.kn);
-        if (effects.focus) this.state.focus = Math.max(0, this.state.focus + effects.focus);
+        if (effects.focus) {
+            this.state.focus = Math.max(0, this.state.focus + effects.focus);
+            // 专注增加时恢复HP
+            if (effects.focus > 0) {
+                this.state.hp = Math.min(this.state.maxHp, this.state.hp + effects.focus * 2);
+            }
+        }
         if (effects.hp) this.state.hp = Math.min(this.state.maxHp, this.state.hp + effects.hp);
         if (effects.cards) {
             // 随机获得卡牌
@@ -122,8 +128,10 @@ class GameState {
         }
         
         if (effects.hp) {
-            this.state.hp = Math.min(this.state.maxHp, this.state.hp + effects.hp);
-            message = `你恢复了${effects.hp}点HP！`;
+            // 根据专注值增加回复量
+            const totalHeal = effects.hp + this.state.focus;
+            this.state.hp = Math.min(this.state.maxHp, this.state.hp + totalHeal);
+            message = `你恢复了${totalHeal}点HP！`;
         }
         
         if (effects.kn) {
@@ -132,6 +140,10 @@ class GameState {
         
         if (effects.focus) {
             this.state.focus = Math.max(0, this.state.focus + effects.focus);
+            // 专注增加时恢复HP
+            if (effects.focus > 0) {
+                this.state.hp = Math.min(this.state.maxHp, this.state.hp + effects.focus * 2);
+            }
         }
         
         if (effects.energy) {
@@ -194,6 +206,9 @@ class GameState {
         if (reward.focus) {
             this.state.focus += reward.focus;
             rewardText += `\n专注+${reward.focus}！`;
+            // 专注增加时恢复HP
+            this.state.hp = Math.min(this.state.maxHp, this.state.hp + reward.focus * 2);
+            rewardText += `\nHP+${reward.focus * 2}！`;
         }
         
         if (reward.kn) {
