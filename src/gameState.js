@@ -140,10 +140,7 @@ class GameState {
         
         if (effects.focus) {
             this.state.focus = Math.max(0, this.state.focus + effects.focus);
-            // 专注增加时恢复HP
-            if (effects.focus > 0) {
-                this.state.hp = Math.min(this.state.maxHp, this.state.hp + effects.focus * 2);
-            }
+         
         }
         
         if (effects.energy) {
